@@ -45,7 +45,7 @@ print("\n\n*** 데이터 분리 ***")
 print(f"학습 데이터 수 : {len(train)}")
 print(f"검증 데이터 수 : {len(validation)}")
 
-batch_size = 16
+batch_size = 32
 train_inputs = torch.tensor(train)
 train_labels = torch.tensor(train_y)
 train_masks  = torch.tensor(train_masks)
@@ -62,7 +62,8 @@ validation_dataloader = DataLoader(validation_data, sampler=validation_sampler, 
 
 model = ElectraForSequenceClassification.from_pretrained('koelectra-small-v3-discriminator', num_labels=2)
 
-optimizer = torch.optim.AdamW(model.parameters(), lr=5e-06)
+#optimizer = torch.optim.AdamW(model.parameters(), lr=5e-06)
+optimizer = torch.optim.Adam(model.parameters(),lr=3e-04, eps=1e-06, betas=(0.9, 0.999))
 
 epoch = 4
 scheduler = get_linear_schedule_with_warmup(optimizer,
