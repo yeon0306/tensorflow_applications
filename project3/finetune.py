@@ -94,7 +94,35 @@ for e in range(0, epoch):
         optimizer.step()
         scheduler.step()
 
-        avg_train_loss = total_loss / len(train_dataloader)
-        print(f"평균 학습 오차(loss) : {avg_train_loss}")
-        epoch_elapsed_time = int(round(time.time() - t0))
-        print(f"학습에 걸린 시간 : {str(datetime.timedelta(seconds=epoch_elapsed_time))}")
+    avg_train_loss = total_loss / len(train_dataloader)
+    print(f"평균 학습 오차(loss) : {avg_train_loss}")
+    epoch_elapsed_time = int(round(time.time() - t0))
+    print(f"학습에 걸린 시간 : {str(datetime.timedelta(seconds=epoch_elapsed_time))}")
+
+    print('\n\n** 검증 **')
+    t0 = time.time()
+    model.eval()
+    eval_loss, eval_accuracy, eval_steps, eval_example = 0, 0, 0, 0
+    for batch in validation_dataloader:
+        batch_ids, batch_mask, batch_labels = tuple(t for t in batch)
+
+        with torch.no_grad():
+            outputs = model(batch_ids, token_type_ids=None, attention_mask=batch_mask)
+
+        logits = outputs[0]
+        logits = logits.numpy()
+        label_ids = batch_labels.numpy()
+
+        pred_flat = np.argmax(logits, axis=1).flatten()
+        labels_flat = label_ids.flatten()
+        eval_accuracy_temp = np.sum(pred_flat == labels_flat) / len(labels_flat)
+        eval_accuracy += eval_accuracy_temp
+        eval_steps += 1
+    print(f"검증 정확도: {eval_accuracy / eval_steps}")
+    val_elapsed_time = int(round(time.time() - t0))
+    print(f"검증에 걸린 시간 : {str(datetime.timedelta(seconds=val_elapsed_time))}")
+
+print("\n\n** 모델 저장 **")
+save_path = 'koelectra-small'
+model.save_pretrained(save_path + ".pt")
+print("\n ** 끝 **")
